@@ -81,7 +81,7 @@ class RowIndex {
   paths: string[] = [];
   titles: string[] = [];
 
-  update(items: Array<{ path: string; title: string }>): void {
+  update(items: ReadonlyArray<{ path: string; title: string }>): void {
     this.paths = items.map((item) => item.path);
     this.titles = items.map((item) => item.title);
   }
@@ -101,7 +101,11 @@ export function apply(ctx: ClientContext): void {
   const sync = (): void => {
     const snapshot = ctx.workspaces.list.getSnapshot();
     if (snapshot && snapshot.items) {
-      row.update(snapshot.items as Array<{ path: string; title: string }>);
+      // The host workspace list is `readonly WorkspaceView[]`; pick the fields
+      // we need explicitly instead of casting the array (readonly → mutable
+      // casts are rejected by stricter TypeScript versions).
+      const items = snapshot.items as ReadonlyArray<{ path: string; title: string }>;
+      row.update(items);
     }
   };
   sync();
