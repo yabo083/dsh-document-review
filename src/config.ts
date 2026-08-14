@@ -23,6 +23,8 @@ export interface ReviewConfig {
   indexScanCooldownMs: number;
   /** Directory names excluded from indexing / migration. */
   indexIgnore: string[];
+  /** Show dot-prefixed entries (`.git`, `.github`, hidden files) in the browser. */
+  showHiddenFiles: boolean;
 }
 
 /** Fallbacks used when the settings service is unavailable. */
@@ -39,6 +41,7 @@ export const DEFAULT_REVIEW_CONFIG: ReviewConfig = {
     "cache", "data", "dist", "build", "out", "target", ".next", ".nuxt",
     ".turbo", ".cache", "__pycache__", ".venv", "venv", ".dsh", "logs",
   ],
+  showHiddenFiles: false,
 };
 
 /** Settings namespace owned by this plugin (lowercase kebab, required). */
@@ -54,4 +57,5 @@ export const ReviewSettingsSchema = z.object({
   indexMaxEntries: z.number().min(100).max(1_000_000).default(DEFAULT_REVIEW_CONFIG.indexMaxEntries).description("索引条目总数上限，防止超大目录拖垮内存"),
   indexScanCooldownMs: z.number().min(1_000).max(3_600_000).default(DEFAULT_REVIEW_CONFIG.indexScanCooldownMs).description("同一目录两次全量扫描的最小间隔（毫秒）"),
   indexIgnore: z.array(z.string()).default([...DEFAULT_REVIEW_CONFIG.indexIgnore]).description("索引与迁移时跳过的目录名（每行一个）"),
+  showHiddenFiles: z.boolean().default(DEFAULT_REVIEW_CONFIG.showHiddenFiles).description("在文件浏览器中显示点开头的隐藏目录与文件（如 .git、.github）"),
 }).description("文档审阅插件配置");

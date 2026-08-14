@@ -12,6 +12,8 @@ const state = {
   root: null, dir: null, parent: null, crumbs: [], entries: [],
   history: [], historyIndex: -1,
   connected: true,
+  // show dot-prefixed (hidden) entries; synced from the effective config.
+  showHidden: false,
 }
 const elements = Object.fromEntries([
   "annotation-body", "annotation-list", "body-label", "browser-empty", "browser-error", "browser-path",
@@ -141,8 +143,9 @@ function isInside(child, parent) {
 
 function renderFileList() {
   elements.file_list.innerHTML = ""
-  const dirs = state.entries.filter((e) => e.kind === "dir")
-  const files = state.entries.filter((e) => e.kind === "file")
+  const visible = state.entries.filter((e) => !e.hidden || state.showHidden)
+  const dirs = visible.filter((e) => e.kind === "dir")
+  const files = visible.filter((e) => e.kind === "file")
   const rows = []
   for (const entry of dirs) {
     rows.push(`<li><button class="file-row dir" type="button" data-path="${escapeHtml(entry.path)}" title="${escapeHtml(entry.path)}">
@@ -748,6 +751,7 @@ let settingsRoot = ""
 const SETTINGS_FIELDS = [
   "preferredPort", "maxPortTries", "idleTimeoutMinutes", "openBrowserOnStart",
   "indexMaxRoots", "indexMaxEntries", "indexScanCooldownMs", "indexIgnore",
+  "showHiddenFiles",
 ]
 
 function fillSettingsForm(config) {
@@ -770,6 +774,7 @@ async function openSettings() {
     // Show the effective snapshot; global tab edits the global layer, the
     // workspace tab edits this root's own overrides.
     fillSettingsForm(data.effective)
+    state.showHidden = Boolean(data.effective?.showHiddenFiles)
     settingsModal.hidden = false
     document.querySelector(".settings-tab[data-level='global']").classList.add("active")
     document.querySelector(".settings-tab[data-level='workspace']").classList.remove("active")
@@ -811,6 +816,9 @@ async function saveSettings() {
     fillSettingsForm(data.effective || config)
     // The server-side singleton may have changed; refresh the stat dot.
     setConnected(true)
+    // Hidden-file visibility is read live by the file list: re-render.
+    state.showHidden = Boolean(data.effective?.showHiddenFiles)
+    if (!elements.file_browser.hidden) renderFileList()
   } catch (error) {
     settingsError.textContent = `保存失败：${error.message}`
     settingsError.hidden = false
@@ -850,6 +858,8 @@ document.querySelector("#reset-settings").addEventListener("click", async () => 
     const data = await api(path, { method: "POST", body: JSON.stringify({ config: {} }) })
     fillSettingsForm(data.effective || {})
     setConnected(true)
+    state.showHidden = Boolean(data.effective?.showHiddenFiles)
+    if (!elements.file_browser.hidden) renderFileList()
   } catch (error) {
     settingsError.textContent = `恢复默认失败：${error.message}`
     settingsError.hidden = false
@@ -946,6 +956,12 @@ async function start() {
   mountIcons() // static toolbar icons, then applyTheme() re-fills the toggle
   initTheme()
   try {
+    // Seed the hidden-file visibility from the effective config before the
+    // first directory renders.
+    try {
+      const cfg = await api("/api/config")
+      state.showHidden = Boolean(cfg.effective?.showHiddenFiles)
+    } catch { /* defaults apply */ }
     const health = await api("/api/health")
     state.root = health.root
     await openDirectory(health.root, { record: false })

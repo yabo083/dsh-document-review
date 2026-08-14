@@ -74,6 +74,7 @@ function sanitizeConfig(value: Record<string, unknown>): Partial<ReviewConfig> {
     if (Number.isFinite(n)) clean[key] = n as never;
   }
   if (typeof source.openBrowserOnStart === "boolean") clean.openBrowserOnStart = source.openBrowserOnStart;
+  if (typeof source.showHiddenFiles === "boolean") clean.showHiddenFiles = source.showHiddenFiles;
   if (Array.isArray(source.indexIgnore)) {
     clean.indexIgnore = source.indexIgnore.filter((x): x is string => typeof x === "string");
   }
@@ -1359,6 +1360,8 @@ interface FsEntry {
   name: string;
   path: string;
   kind: "dir" | "file";
+  /** Dot-prefixed (hidden) entry; the client decides whether to show it. */
+  hidden?: boolean;
   /** Open (pending) annotation count for a Markdown file; 0 for directories. */
   openCount?: number;
 }
@@ -1403,10 +1406,12 @@ async function listDirectoryEntries(dirPath: string, baseDirectory: string, root
   const dirs: FsEntry[] = [];
   const files: FsEntry[] = [];
   for (const entry of entries) {
-    if (entry.name.startsWith(".")) continue;
+    // Dot-prefixed entries are marked hidden and let the client decide, so
+    // `.github`, `.git` and the like stay reachable when the user asks.
+    const hidden = entry.name.startsWith(".");
     const full = resolve(dirPath, entry.name);
     if (entry.isDirectory()) {
-      dirs.push({ name: entry.name, path: full, kind: "dir" });
+      dirs.push({ name: entry.name, path: full, kind: "dir", hidden });
     } else if (entry.isSymbolicLink()) {
       // Windows directory junctions (OneDrive redirects, user-profile links)
       // surface as symlinks from Dirent. Follow the target: directories are
@@ -1414,14 +1419,14 @@ async function listDirectoryEntries(dirPath: string, baseDirectory: string, root
       const target = await stat(full).catch(() => null);
       if (!target) continue;
       if (target.isDirectory()) {
-        dirs.push({ name: entry.name, path: full, kind: "dir" });
+        dirs.push({ name: entry.name, path: full, kind: "dir", hidden });
       } else if (target.isFile() && [".md", ".markdown"].includes(extname(entry.name).toLowerCase())) {
         const openCount = await countOpenAnnotations(full);
-        files.push({ name: entry.name, path: full, kind: "file", openCount });
+        files.push({ name: entry.name, path: full, kind: "file", openCount, hidden });
       }
     } else if (entry.isFile() && [".md", ".markdown"].includes(extname(entry.name).toLowerCase())) {
       const openCount = await countOpenAnnotations(full);
-      files.push({ name: entry.name, path: full, kind: "file", openCount });
+      files.push({ name: entry.name, path: full, kind: "file", openCount, hidden });
     }
   }
   const byName = (a: FsEntry, b: FsEntry) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
