@@ -385,7 +385,7 @@ export function apply(ctx: Context, config: ReviewConfig = DEFAULT_REVIEW_CONFIG
       return {
         stopped,
         documentPath: path ? (await resolveReviewTarget(path, process.cwd())).path : null,
-        reason: stopped ? undefined : "No active review server",
+        reason: stopped ? null : "No active review server",
       } as JsonValue;
     },
   }));
