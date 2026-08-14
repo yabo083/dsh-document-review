@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>文档审阅</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="nav-controls" aria-label="导航">
+        <button id="nav-back" class="nav-button" type="button" title="后退 (Alt+← / 鼠标侧键)" disabled><span data-icon="arrow-left"></span></button>
+        <button id="nav-forward" class="nav-button" type="button" title="前进 (Alt+→ / 鼠标侧键)" disabled><span data-icon="arrow-right"></span></button>
+        <button id="nav-up" class="nav-button" type="button" title="上级目录 (Alt+↑)"><span data-icon="arrow-up"></span></button>
+        <button id="nav-refresh" class="nav-button" type="button" title="刷新"><span data-icon="refresh"></span></button>
+        <button id="nav-history" class="nav-button" type="button" title="历史记录"><span data-icon="history"></span></button>
+      </div>
+      <div class="path-bar">
+        <span id="path-root" class="path-root" title="工作区根目录"></span>
+        <nav id="breadcrumbs" class="breadcrumbs" aria-label="面包屑"></nav>
+      </div>
+      <form id="search-form" class="search-form" aria-label="搜索跳转">
+        <span class="search-glyph" aria-hidden="true"></span>
+        <input id="search-input" type="text" spellcheck="false" placeholder="搜索文件…  (Ctrl+P)" autocomplete="off">
+        <kbd class="search-hint">⏎ 跳转</kbd>
+      </form>
+      <div id="search-panel" class="search-panel" hidden>
+        <p id="search-status" class="search-status"></p>
+        <ul id="search-results" class="search-results"></ul>
+      </div>
+      <div class="summary" aria-label="审阅统计"><strong id="open-count">0</strong><span id="open-count-label">待处理</span></div>
+      <button id="settings-toggle" class="nav-button settings-toggle" type="button" title="设置" aria-label="设置"></button>
+      <button id="theme-toggle" class="nav-button theme-toggle" type="button" title="切换深浅主题" aria-label="切换深浅主题"></button>
+      <div id="status-dot" class="status-dot" title="审阅服务状态"></div>
+    </header>
+    <main class="main">
+      <section id="file-browser" class="file-browser" aria-label="文件浏览器">
+        <p id="browser-path" class="browser-path"></p>
+        <ul id="file-list" class="file-list"></ul>
+        <p id="browser-empty" class="empty-state" hidden>目录为空，或没有 Markdown 文件。</p>
+        <p id="browser-error" class="load-error" hidden></p>
+      </section>
+      <section id="review-view" class="review-view" hidden aria-label="文档审阅">
+        <article id="document" class="document" aria-label="待审阅文档"></article>
+        <aside class="review-panel">
+          <div class="panel-heading">
+            <div><p class="eyebrow">REVIEW NOTES</p><h2>批注与修订</h2></div>
+            <button id="toggle-filter" class="ghost-button" type="button">显示全部</button>
+          </div>
+          <section id="composer" class="composer" hidden>
+            <div class="composer-heading">
+              <strong id="composer-title">添加批注</strong>
+              <button id="close-composer" class="icon-button" type="button" aria-label="关闭">×</button>
+            </div>
+            <blockquote id="selected-quote"></blockquote>
+            <label><span id="body-label">批注</span><textarea id="annotation-body" rows="4" placeholder="说明问题、疑问或理由"></textarea></label>
+            <label id="replacement-field" hidden><span>建议替换为</span><textarea id="replacement" rows="4"></textarea></label>
+            <p id="composer-error" class="error" role="alert"></p>
+            <div class="composer-actions">
+              <button id="cancel-composer" class="ghost-button" type="button">取消</button>
+              <button id="save-annotation" class="primary-button" type="button">保存</button>
+            </div>
+          </section>
+          <div id="annotation-list" class="annotation-list"></div>
+          <p id="empty-state" class="empty-state">选中文档文字即可留下批注或建议修订。</p>
+        </aside>
+      </section>
+    </main>
+    <div id="selection-toolbar" class="selection-toolbar" hidden>
+      <button data-kind="comment" type="button">批注</button>
+      <button data-kind="replace" type="button">建议替换</button>
+      <button data-kind="delete" type="button">建议删除</button>
+    </div>
+    <div id="settings-modal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="modal-backdrop" data-settings-close></div>
+      <div class="modal-card">
+        <div class="modal-heading">
+          <h2 id="settings-title">设置</h2>
+          <button id="close-settings" class="icon-button" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="settings-tabs" role="tablist" aria-label="配置层级">
+          <button class="settings-tab active" data-level="global" type="button" role="tab" aria-selected="true">全局设置</button>
+          <button class="settings-tab" data-level="workspace" type="button" role="tab" aria-selected="false">当前工作区设置</button>
+        </div>
+        <p id="settings-scope" class="settings-scope"></p>
+        <form id="settings-form" class="settings-form">
+          <div class="settings-grid">
+            <label class="field">
+              <span>审阅服务端口</span>
+              <input name="preferredPort" type="number" min="1024" max="65535">
+            </label>
+            <label class="field">
+              <span>端口尝试次数</span>
+              <input name="maxPortTries" type="number" min="1" max="100">
+            </label>
+            <label class="field">
+              <span>空闲自动关闭（分钟）</span>
+              <input name="idleTimeoutMinutes" type="number" min="1" max="1440">
+            </label>
+            <label class="field field-check">
+              <span>启动时自动打开页面</span>
+              <input name="openBrowserOnStart" type="checkbox">
+            </label>
+            <label class="field">
+              <span>索引记住的目录数</span>
+              <input name="indexMaxRoots" type="number" min="1" max="512">
+            </label>
+            <label class="field">
+              <span>索引条目上限</span>
+              <input name="indexMaxEntries" type="number" min="100" max="1000000">
+            </label>
+            <label class="field">
+              <span>重扫间隔（毫秒）</span>
+              <input name="indexScanCooldownMs" type="number" min="1000" max="3600000">
+            </label>
+            <label class="field field-block">
+              <span>跳过的目录名（每行一个）</span>
+              <textarea name="indexIgnore" rows="5" spellcheck="false"></textarea>
+            </label>
+          </div>
+          <p id="settings-error" class="error" role="alert" hidden></p>
+          <div class="settings-actions">
+            <button id="reset-settings" class="ghost-button" type="button">恢复默认</button>
+            <button id="save-settings" class="primary-button" type="submit">保存</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,8 @@
+node_modules/
+lib/
+*.tsbuildinfo
+*.review.jsonl
+merged-*.md
+.DS_Store
+# Local dev overlay (contains machine-specific absolute paths).
+cordis.yml

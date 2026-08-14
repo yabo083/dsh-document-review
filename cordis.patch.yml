@@ -1,0 +1,9 @@
+# dsh-document-review profile bundle patch.
+#
+# Applied over a profile root. Registers the review tool plugin (model-facing
+# tools) into the agent's tool registry. `name` points at this package's own
+# main export, which DSH's bundle reconciler resolves after `dsh plugin add`.
+
+- insert:
+    - id: document-review
+      name: 'dsh-document-review'
