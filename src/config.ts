@@ -39,7 +39,7 @@ export const DEFAULT_REVIEW_CONFIG: ReviewConfig = {
   indexIgnore: [
     "node_modules", ".git", ".hg", ".svn", ".idea", ".vscode", ".DS_Store",
     "cache", "data", "dist", "build", "out", "target", ".next", ".nuxt",
-    ".turbo", ".cache", "__pycache__", ".venv", "venv", ".dsh", "logs",
+    ".turbo", ".cache", "__pycache__", ".venv", "venv", "logs",
   ],
   showHiddenFiles: false,
 };

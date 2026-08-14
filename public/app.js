@@ -770,6 +770,7 @@ async function openSettings() {
   try {
     const data = await api("/api/config")
     settingsRoot = data.root || ""
+    if (data.writeToken) state.token = data.writeToken
     settingsScope.textContent = `当前工作区：${settingsRoot || "（未指定）"}`
     // Show the effective snapshot; global tab edits the global layer, the
     // workspace tab edits this root's own overrides.
@@ -819,6 +820,8 @@ async function saveSettings() {
     // Hidden-file visibility is read live by the file list: re-render.
     state.showHidden = Boolean(data.effective?.showHiddenFiles)
     if (!elements.file_browser.hidden) renderFileList()
+    // Saved — dismiss the dialog; the values are live.
+    closeSettings()
   } catch (error) {
     settingsError.textContent = `保存失败：${error.message}`
     settingsError.hidden = false
@@ -956,11 +959,13 @@ async function start() {
   mountIcons() // static toolbar icons, then applyTheme() re-fills the toggle
   initTheme()
   try {
-    // Seed the hidden-file visibility from the effective config before the
-    // first directory renders.
+    // Seed the hidden-file visibility and the write token from the effective
+    // config before the first directory renders (token lets the settings page
+    // save without ever opening a document).
     try {
       const cfg = await api("/api/config")
       state.showHidden = Boolean(cfg.effective?.showHiddenFiles)
+      if (cfg.writeToken) state.token = cfg.writeToken
     } catch { /* defaults apply */ }
     const health = await api("/api/health")
     state.root = health.root

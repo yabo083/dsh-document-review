@@ -1172,6 +1172,9 @@ export async function createReviewServer(inputPath: string, options: ReviewServe
           global: globalOverrides,
           workspace: workspaceOverrides[instance.rootPath] ?? {},
           effective: merged,
+          // Write token rides the open read so the page can POST config even
+          // before any document has been opened (token is per-session).
+          writeToken,
         });
       }
       if (request.method === "POST" && url.pathname === "/api/config/global") {
