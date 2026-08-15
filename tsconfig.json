@@ -14,11 +14,7 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": false,
     "verbatimModuleSyntax": false,
-    "types": ["node"],
-    "paths": {
-      "@deepseek-ai/cordis": ["E:/Codes/AI/agent辅助/deepseek-harness/vendor/cordis/lib/types/index.d.ts"],
-      "@deepseek-ai/dsh-tools": ["E:/Codes/AI/agent辅助/deepseek-harness/packages/core/tools/lib/types/index.d.ts"]
-    }
+    "types": ["node"]
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "lib", "public", "src/client"]

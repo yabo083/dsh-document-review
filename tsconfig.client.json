@@ -6,13 +6,7 @@
     "declaration": true,
     "declarationDir": "lib/types",
     "types": [],
-    "skipLibCheck": true,
-    "paths": {
-      "@deepseek-ai/cordis": ["E:/Codes/AI/agent辅助/deepseek-harness/vendor/cordis/lib/types/index.d.ts"],
-      "@deepseek-ai/dsh-tools": ["E:/Codes/AI/agent辅助/deepseek-harness/packages/core/tools/lib/types/index.d.ts"],
-      "@deepseek-ai/dsh-client-runtime": ["E:/Codes/AI/agent辅助/deepseek-harness/packages/client/runtime/lib/types/index.d.ts"],
-      "@deepseek-ai/dsh-client-runtime/client": ["E:/Codes/AI/agent辅助/deepseek-harness/packages/client/runtime/lib/types/client/index.d.ts"]
-    }
+    "skipLibCheck": true
   },
   "include": ["src/client/**/*.tsx", "src/client/**/*.ts"],
   "exclude": ["node_modules", "lib", "public"]

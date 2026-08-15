@@ -42,8 +42,9 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json && tsc -p tsconfig.client.json && node scripts/copy-assets.mjs && npx tsdown",
-    "prepublishOnly": "npm run build",
-    "check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit"
+    "prepublishOnly": "npm run build && node scripts/verify-pack.mjs",
+    "check": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.client.json --noEmit",
+    "verify-pack": "node scripts/verify-pack.mjs"
   },
   "keywords": [
     "dsh",
