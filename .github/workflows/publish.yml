@@ -43,6 +43,9 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Verify package completeness
+        run: npm run verify-pack
+
       - name: Pack
         run: npm pack
 
